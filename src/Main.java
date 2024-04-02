@@ -3,6 +3,11 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
+        MusicModel musicModel = new MusicModel("a", "ab", "2025/03/23", Genre.HIPHOP, "dfld");
+        System.out.println(musicModel.getLikeCounter());
+        ListenerController.getListenerController().likeAudio(musicModel.getIdentityNumber());
+        System.out.println(musicModel.getSharingDate().getYear() + 1900);
+
 
     }
 }
@@ -17,7 +22,7 @@ final class DataBase {
                 dataBase.Users[i] = new ArrayList<>();
             }
             for (int i = 0; i < 2; i++) {
-                dataBase.Users[i] = new ArrayList<>();
+                dataBase.Audios[i] = new ArrayList<>();
             }
         }
         return dataBase;
@@ -70,17 +75,148 @@ final class DataBase {
     public int findListener(String username, String password) {
 
         for (UserAccountModel a : Users[1]) {
-            if (a.getUserName().equals(username) && a.getPassword().equals(password)){
+            if (a.getUserName().equals(username) && a.getPassword().equals(password)) {
                 return 2;
             }
         }
         for (UserAccountModel a : Users[2]) {
-            if (a.getUserName().equals(username) && a.getPassword().equals(password)){
+            if (a.getUserName().equals(username) && a.getPassword().equals(password)) {
                 return 2;
             }
         }
 
         return 1;
+    }
+    public String audioToString(){
+        String result="";
+        for (AudioModel audioModel:Audios[0]){
+            result+=audioModel.toString()+"\n";
+        }
+        for (AudioModel audioModel:Audios[1]){
+            result+=audioModel.toString()+"\n";
+        }
+        return result;
+    }
+
+    public AudioModel getAudio(String audioIdentity) {
+        if (Audios[0] != null) {
+            for (AudioModel music : Audios[0]) {
+                if (music.getIdentityNumber().equals(audioIdentity)) {
+                    return music;
+                }
+            }
+        }
+
+        for (AudioModel music : Audios[1]) {
+            if (music.getIdentityNumber().equals(audioIdentity)) {
+                return music;
+            }
+        }
+        return null;
+    }
+
+    public String search(String userInput) {
+        String result = "";
+        for (UserAccountModel user : Users[3]) {
+            if (user.getFullName().contains(userInput)) {
+                result += user.toString() + "\n";
+            }
+        }
+        for (UserAccountModel user : Users[4]) {
+            if (user.getFullName().contains(userInput)) {
+                result += user.toString() + "\n";
+            }
+        }
+        for (AudioModel audio : Audios[0]) {
+            if (audio.getAudioName().contains(userInput)) {
+                result += audio.toString() + "\n";
+            }
+        }
+        for (AudioModel audio : Audios[1]) {
+            if (audio.getAudioName().contains(userInput)) {
+                result += audio.toString() + "\n";
+            }
+        }
+
+        return result;
+    }
+
+    public String filterByArtist(String name) {
+        String result = "";
+        for (AudioModel audio : Audios[0]) {
+            if (audio.getArtistName().contains(name)) {
+                result += audio.toString() + "\n";
+            }
+        }
+        for (AudioModel audio : Audios[1]) {
+            if (audio.getArtistName().contains(name)) {
+                result += audio.toString() + "\n";
+            }
+        }
+        return result;
+    }
+
+    public String filterByGenre(String genre) {
+        String result = "";
+        for (AudioModel audio : Audios[0]) {
+            if (String.valueOf(audio.getGenre()).equalsIgnoreCase(genre)) {
+                result += audio.toString();
+            }
+        }
+        for (AudioModel audio : Audios[0]) {
+            if (String.valueOf(audio.getGenre()).equalsIgnoreCase(genre)) {
+                result += audio.toString();
+            }
+        }
+        return result;
+    }
+
+    public String filterByDate(int year, int month, int day) {
+        String result = "";
+        for (AudioModel audio : Audios[0]) {
+            if ((audio.getSharingDate().getYear() + 1900) < year) {
+                result += audio.toString() + "\n";
+            } else if (audio.getSharingDate().getYear() == year) {
+                if (month > audio.getSharingDate().getMonth() + 1) {
+                    result += audio.toString() + "\n";
+                } else if (month == audio.getSharingDate().getMonth() + 1 && day >= audio.getSharingDate().getDate()) {
+                    result += audio.toString() + "\n";
+                }
+            }
+        }
+        for (AudioModel audio : Audios[1]) {
+            if ((audio.getSharingDate().getYear() + 1900) < year) {
+                result += audio.toString() + "\n";
+            } else if (audio.getSharingDate().getYear() + 1900 == year) {
+                if (month > audio.getSharingDate().getMonth() + 1) {
+                    result += audio.toString() + "\n";
+                } else if (month == audio.getSharingDate().getMonth() + 1 && day >= audio.getSharingDate().getDate()) {
+                    result += audio.toString() + "\n";
+                }
+            }
+        }
+        return result;
+    }
+    public void sortByLike(){
+        for (int i=0;i<Audios[0].size()-1;i++){
+            for (int j=0;j<Audios[0].size()-i-1;j++){
+                if (Audios[0].get(j).getLikeCounter()<Audios[0].get(j+1).getLikeCounter()){
+                    AudioModel tmp=Audios[0].get(j);
+                    Audios[0].add(j,Audios[0].get(j+1));
+                    Audios[0].add(j+1,Audios[0].get(j));
+                }
+            }
+        }
+        for (int i=0;i<Audios[1].size()-1;i++){
+            for (int j=0;j<Audios[1].size()-i-1;j++){
+                if (Audios[1].get(j).getLikeCounter()<Audios[1].get(j+1).getLikeCounter()){
+                    AudioModel tmp=Audios[1].get(j);
+                    Audios[1].add(j,Audios[1].get(j+1));
+                    Audios[1].add(j+1,Audios[1].get(j));
+                }
+            }
+        }
+
     }
 }
 
@@ -129,6 +265,7 @@ abstract class UserAccountModel {
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.dateModifier = dateModifier;
+        DataBase.getDataBase().setUsers(this);
     }
 
     private String userName;
@@ -161,6 +298,14 @@ abstract class UserAccountModel {
 
     public String getDateModifier() {
         return dateModifier;
+    }
+
+    @Override
+    public String toString() {
+        return "UserAccountModel{" +
+                "fullName='" + fullName + '\'' +
+                ", dateModifier='" + dateModifier + '\'' +
+                '}';
     }
 }
 
@@ -248,13 +393,14 @@ abstract class AudioModel {
         AudioModel.audioMaker++;
         this.identityNumber = String.valueOf(this.sharingDate.getYear() + 1900) + String.valueOf(this.sharingDate.getMonth() + 1) + String.valueOf(this.sharingDate.getDate()) + String.valueOf(AudioModel.audioMaker);
         this.genre = genre;
+        DataBase.getDataBase().setAudios(this);
     }
 
     final private String identityNumber;
     final private String audioName;
     final private String artistName;
-    private String playCounter;
-    private String likeCounter;
+    private long playCounter;
+    private long likeCounter;
     private Date sharingDate;
     private Genre genre;
     static private long audioMaker = 0;
@@ -271,11 +417,11 @@ abstract class AudioModel {
         return artistName;
     }
 
-    public String getPlayCounter() {
+    public long getPlayCounter() {
         return playCounter;
     }
 
-    public String getLikeCounter() {
+    public long getLikeCounter() {
         return likeCounter;
     }
 
@@ -285,6 +431,27 @@ abstract class AudioModel {
 
     public Genre getGenre() {
         return genre;
+    }
+
+    public void setPlayCounter(long playCounter) {
+        this.playCounter = playCounter;
+    }
+
+    public void setLikeCounter(long likeCounter) {
+        this.likeCounter = likeCounter;
+    }
+
+    @Override
+    public String toString() {
+        return "AudioModel{" +
+                "identityNumber='" + identityNumber + '\'' +
+                ", audioName='" + audioName + '\'' +
+                ", artistName='" + artistName + '\'' +
+                ", playCounter=" + playCounter +
+                ", likeCounter=" + likeCounter +
+                ", sharingDate=" + sharingDate +
+                ", genre=" + genre +
+                '}';
     }
 }
 
@@ -299,6 +466,7 @@ class MusicModel extends AudioModel {
     public String getLyrics() {
         return lyrics;
     }
+
 }
 
 final class PodcastModel extends AudioModel {
@@ -398,13 +566,15 @@ abstract class ListenerModel extends UserAccountModel {
         this.userAccountCredentials = 50;
         this.expiryDate = expiryDate;
         this.favoriteGenre = favoriteGenre;
+
     }
 
 
     private double userAccountCredentials;
     private Date expiryDate;
     private ArrayList<Genre> favoriteGenre = new ArrayList<>();
-    private Map<String, Long> musicPlayCounter = new HashMap<>();
+    private Map<AudioModel, Long> musicPlayCounter = new HashMap<>();
+    private ArrayList<ArtistModel> following = new ArrayList<>();
 
     public double getUserAccountCredentials() {
         return userAccountCredentials;
@@ -414,6 +584,18 @@ abstract class ListenerModel extends UserAccountModel {
         return expiryDate;
     }
 
+    public void setMusicPlayCounter(AudioModel audioModel) {
+        long newValue = musicPlayCounter.get(audioModel);
+        musicPlayCounter.put(audioModel, newValue + 1);
+    }
+
+    public String getFollowing() {
+        String tmp = "";
+        for (ArtistModel artist : following) {
+            tmp += ("Name: " + artist.getFullName() + "\n" + "Bio" + artist.getBio() + "\n");
+        }
+        return tmp;
+    }
 }
 
 final class FreeListenerModel extends ListenerModel {
@@ -459,7 +641,16 @@ final class PremiumListenerModel extends ListenerModel {
 
 }
 
-abstract class listenerController {
+class ListenerController {
+    private static ListenerController listenerController;
+
+    public static ListenerController getListenerController() {
+        if (listenerController == null) {
+            listenerController = new ListenerController();
+        }
+        return listenerController;
+    }
+
     public boolean signIn(String userName, String password, String fullName, String email, String phoneNumber, String dateModifier, ArrayList<Genre> favoriteGenre, int musicAddCounter, int playlistCounter) {
         FreeListenerModel tmp = new FreeListenerModel(userName, password, fullName, email, phoneNumber, dateModifier, favoriteGenre, musicAddCounter, playlistCounter);
         if (DataBase.getDataBase().checkListener(tmp)) {
@@ -471,6 +662,59 @@ abstract class listenerController {
 
     public int logIn(String username, String password) {
         return DataBase.getDataBase().findListener(username, password);
+    }
+
+    public boolean likeAudio(String audioIdentity) {
+        AudioModel tmpAudio = DataBase.getDataBase().getAudio(audioIdentity);
+        if (tmpAudio == null) {
+            return false;
+        }
+        tmpAudio.setLikeCounter(tmpAudio.getLikeCounter() + 1);
+        return true;
+    }
+
+    public boolean playMusic(String audioIdentity, ListenerModel listenerModel) {
+        AudioModel audioModel = DataBase.getDataBase().getAudio(audioIdentity);
+        if (audioModel == null) {
+            return false;
+        }
+        audioModel.setPlayCounter(audioModel.getPlayCounter() + 1);
+        listenerModel.setMusicPlayCounter(audioModel);
+        return true;
+    }
+
+    public String searchMusic_Artist(String name) {
+        return DataBase.getDataBase().search(name);
+    }
+
+    public String artistFilter(String artistName) {
+        return DataBase.getDataBase().filterByArtist(artistName);
+    }
+
+    public String filterByGenre(String genre) {
+        return DataBase.getDataBase().filterByGenre(genre);
+    }
+
+    public String filterByDate(int year, int month, int day) {
+        return DataBase.getDataBase().filterByDate(year, month, day);
+    }
+    public String getListenerFollowing(ListenerModel listenerModel) {
+        return listenerModel.getFollowing();
+    }
+    public String sortByLike(){
+        String result="";
+        return result;
+    }
+}
+
+class AudioController {
+    private static AudioController audioController;
+
+    public static AudioController getAudioController() {
+        if (audioController == null) {
+            audioController = new AudioController();
+        }
+        return audioController;
     }
 
 }
